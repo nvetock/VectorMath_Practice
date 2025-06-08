@@ -88,6 +88,7 @@ public class BouncingLaser : MonoBehaviour
         laser_pos = transform.position;
         laser_dir = transform.up.normalized;
 
+        /*
         RaycastHit hit;
         Physics.Raycast(laser_pos, laser_dir, out hit);
         Debug.Log("normal: " + hit.normal);
@@ -101,14 +102,54 @@ public class BouncingLaser : MonoBehaviour
         //addLine(hit.point);
 
         //Vector3 bounce_dir = laser_dir * hit.normal;
-
+        */
+        addLine(laser_pos);
+        for (int i = 1; i < line.positionCount; i++)
+        {
+            LaserBeam();
+        }
     }
 
-    void ProcessHit()
+    void LaserBeam()
     {
+        RaycastHit hit;
+        Physics.Raycast(laser_pos, laser_dir, out hit);
+        Debug.Log("Collider " + hit.collider.name + " hit at: " + hit.point + "| normal: " + hit.normal);
 
+        float y_scalar_projection = Vector3.Dot(hit.normal, laser_pos);
+        Vector3 y_projection_pos = hit.normal * y_scalar_projection;
+
+        Vector3 x_projection_pos = laser_pos - y_projection_pos;
+
+        Vector3 x_reflect_pos = -x_projection_pos;
+
+        laser_pos = hit.point;
+        laser_dir = (x_reflect_pos - hit.point).normalized;
+        Debug.Log("Sending ray towards: " + laser_dir);
+        addLine(laser_pos);
     }
 
+    void LaserBeam2()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(laser_pos, laser_dir, out hit))
+        {
+            Debug.Log("Collider " + hit.collider.name + " hit at: " + hit.point + "| normal: " + hit.normal);
+
+            laser_pos = hit.point;
+
+            Vector3 norm = hit.normal.normalized;
+            Vector3 dir = laser_dir.normalized;
+
+            //Reflection
+            Vector3 reflectedDir = dir - 2f * Vector3.Dot(dir, norm) * norm;
+
+            // Nudge to avoid a re-hit
+            //laser_pos += laser_dir * 0.01f;
+            addLine(laser_pos);
+
+        }
+    }
 
 
     void AddLine(Vector3 a, Vector3 b)
